@@ -1211,6 +1211,7 @@ void DBImpl::ReleaseSnapshot(const Snapshot* snapshot) {
 
 // Convenience methods
 Status DBImpl::Put(const WriteOptions& o, const Slice& key, const Slice& val) {
+  //printf("Put\n");
   if (delsm::MOD > 0) {
     uint64_t value_address = delsm::db->vlog->AddRecord(key, val);
     char buffer[sizeof(uint64_t) + sizeof(uint32_t)];

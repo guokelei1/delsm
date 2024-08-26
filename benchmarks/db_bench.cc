@@ -896,18 +896,18 @@ class Benchmark {
     std::string value;
     int found = 0;
     KeyBuffer key;
-    printf("reads_ = %d\n", reads_);
+    //printf("reads_ = %d\n", reads_);
     for (int i = 0; i < reads_; i++) {
       const int k = thread->rand.Uniform(FLAGS_num);
       key.Set(k);
       if (db_->Get(options, key.slice(), &value).ok()) {
         found++;
       }
-      printf("i = %d",i);
-      printf("key = {%s}",key.slice().data());
-      printf("value = {%s}",value.c_str());
-      printf("\tdone\n");
-      printf("i = %d",i);
+      // printf("i = %d",i);
+      // printf("key = {%s}",key.slice().data());
+      // printf("value = {%s}",value.c_str());
+      // printf("\tdone\n");
+      // printf("i = %d",i);
       thread->stats.FinishedSingleOp();
     }
     char msg[100];
