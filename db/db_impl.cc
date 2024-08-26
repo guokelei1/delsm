@@ -4,14 +4,6 @@
 
 #include "db/db_impl.h"
 
-#include <algorithm>
-#include <atomic>
-#include <cstdint>
-#include <cstdio>
-#include <set>
-#include <string>
-#include <vector>
-
 #include "db/builder.h"
 #include "db/db_iter.h"
 #include "db/dbformat.h"
@@ -22,11 +14,20 @@
 #include "db/table_cache.h"
 #include "db/version_set.h"
 #include "db/write_batch_internal.h"
+#include <algorithm>
+#include <atomic>
+#include <cstdint>
+#include <cstdio>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "leveldb/db.h"
 #include "leveldb/env.h"
 #include "leveldb/status.h"
 #include "leveldb/table.h"
 #include "leveldb/table_builder.h"
+
 #include "port/port.h"
 #include "table/block.h"
 #include "table/merger.h"
@@ -34,6 +35,9 @@
 #include "util/coding.h"
 #include "util/logging.h"
 #include "util/mutexlock.h"
+
+#include "mod/util.h"
+#include "mod/vlog.h"
 
 namespace leveldb {
 
@@ -147,7 +151,11 @@ DBImpl::DBImpl(const Options& raw_options, const std::string& dbname)
       background_compaction_scheduled_(false),
       manual_compaction_(nullptr),
       versions_(new VersionSet(dbname_, &options_, table_cache_,
-                               &internal_comparator_)) {}
+                               &internal_comparator_)) {
+  delsm::db = this;
+  //printf("DBImpl::DBImpl\n");
+  vlog = new delsm::VLog(dbname_ + "/vlog.txt");
+}
 
 DBImpl::~DBImpl() {
   // Wait for background work to finish.
@@ -176,6 +184,7 @@ DBImpl::~DBImpl() {
   if (owns_cache_) {
     delete options_.block_cache;
   }
+  delete vlog;
 }
 
 Status DBImpl::NewDB() {
@@ -1152,6 +1161,13 @@ Status DBImpl::Get(const ReadOptions& options, const Slice& key,
       s = current->Get(options, lkey, value, &stats);
       have_stat_update = true;
     }
+    // 增加从vlog中读取真实value的逻辑
+    if (delsm::MOD > 0 && s.ok()) {
+      uint64_t value_address = DecodeFixed64(value->c_str());
+      uint32_t value_size = DecodeFixed32(value->c_str() + sizeof(uint64_t));
+      *value = std::move(vlog->ReadRecord(value_address, value_size));
+    }
+
     mutex_.Lock();
   }
 
@@ -1195,6 +1211,14 @@ void DBImpl::ReleaseSnapshot(const Snapshot* snapshot) {
 
 // Convenience methods
 Status DBImpl::Put(const WriteOptions& o, const Slice& key, const Slice& val) {
+  if (delsm::MOD > 0) {
+    uint64_t value_address = delsm::db->vlog->AddRecord(key, val);
+    char buffer[sizeof(uint64_t) + sizeof(uint32_t)];
+    EncodeFixed64(buffer, value_address);
+    EncodeFixed32(buffer + sizeof(uint64_t), val.size());
+    return DB::Put(o, key,
+                   (Slice){buffer, sizeof(uint64_t) + sizeof(uint32_t)});
+  }
   return DB::Put(o, key, val);
 }
 
@@ -1501,6 +1525,9 @@ DB::~DB() = default;
 
 Status DB::Open(const Options& options, const std::string& dbname, DB** dbptr) {
   *dbptr = nullptr;
+
+  //初始化util相关参数
+  delsm::env= options.env;
 
   DBImpl* impl = new DBImpl(options, dbname);
   impl->mutex_.Lock();

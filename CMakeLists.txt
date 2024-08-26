@@ -190,6 +190,11 @@ target_sources(leveldb
     "util/options.cc"
     "util/random.h"
     "util/status.cc"
+    "mod/util.h"
+    "mod/util.cc"
+    "mod/vlog.h"
+    "mod/vlog.cc"
+
 
   # Only CMake 3.3+ supports PUBLIC sources in targets exported by "install".
   $<$<VERSION_GREATER:CMAKE_VERSION,3.2>:PUBLIC>
@@ -392,6 +397,7 @@ if(LEVELDB_BUILD_TESTS)
   endfunction(leveldb_test)
 
   leveldb_test("db/c_test.c")
+  leveldb_test("${PROJECT_SOURCE_DIR}/mod/read.cc")
 
   if(NOT BUILD_SHARED_LIBS)
     # TODO(costan): This test also uses

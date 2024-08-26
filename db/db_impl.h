@@ -5,18 +5,21 @@
 #ifndef STORAGE_LEVELDB_DB_DB_IMPL_H_
 #define STORAGE_LEVELDB_DB_DB_IMPL_H_
 
+#include "db/dbformat.h"
+#include "db/log_writer.h"
+#include "db/snapshot.h"
 #include <atomic>
 #include <deque>
 #include <set>
 #include <string>
 
-#include "db/dbformat.h"
-#include "db/log_writer.h"
-#include "db/snapshot.h"
 #include "leveldb/db.h"
 #include "leveldb/env.h"
+
 #include "port/port.h"
 #include "port/thread_annotations.h"
+
+#include "mod/vlog.h"
 
 namespace leveldb {
 
@@ -70,6 +73,8 @@ class DBImpl : public DB {
   // Samples are taken approximately once every config::kReadBytesPeriod
   // bytes.
   void RecordReadSample(Slice key);
+
+  delsm::VLog* vlog;
 
  private:
   friend class DB;

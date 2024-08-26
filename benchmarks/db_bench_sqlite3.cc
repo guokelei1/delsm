@@ -600,7 +600,6 @@ class Benchmark {
     ErrorCheck(status);
     status = sqlite3_prepare_v2(db_, read_str.c_str(), -1, &read_stmt, nullptr);
     ErrorCheck(status);
-
     bool transaction = (entries_per_batch > 1);
     for (int i = 0; i < reads_; i += entries_per_batch) {
       // Begin read transaction

@@ -8,11 +8,6 @@
 #ifndef __Fuchsia__
 #include <sys/resource.h>
 #endif
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <atomic>
 #include <cerrno>
 #include <cstddef>
@@ -24,13 +19,18 @@
 #include <queue>
 #include <set>
 #include <string>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <thread>
 #include <type_traits>
+#include <unistd.h>
 #include <utility>
 
 #include "leveldb/env.h"
 #include "leveldb/slice.h"
 #include "leveldb/status.h"
+
 #include "port/port.h"
 #include "port/thread_annotations.h"
 #include "util/env_posix_test_helper.h"
@@ -540,12 +540,13 @@ class PosixEnv : public Env {
   Status NewRandomAccessFile(const std::string& filename,
                              RandomAccessFile** result) override {
     *result = nullptr;
-    int fd = ::open(filename.c_str(), O_RDONLY | kOpenBaseFlags);
+    int fd = ::open(filename.c_str(), O_RDONLY);
     if (fd < 0) {
       return PosixError(filename, errno);
     }
 
-    if (!mmap_limiter_.Acquire()) {
+    if (!mmap_limiter_.Acquire() || filename.find("vlog") != std::string::npos) {
+      posix_fadvise(fd, 0, 0, POSIX_FADV_RANDOM);
       *result = new PosixRandomAccessFile(filename, fd, &fd_limiter_);
       return Status::OK();
     }
@@ -572,8 +573,13 @@ class PosixEnv : public Env {
 
   Status NewWritableFile(const std::string& filename,
                          WritableFile** result) override {
-    int fd = ::open(filename.c_str(),
-                    O_TRUNC | O_WRONLY | O_CREAT | kOpenBaseFlags, 0644);
+    int fd;
+
+    if (filename.find("vlog") != std::string::npos) {
+      fd = ::open(filename.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
+    } else {
+      fd = ::open(filename.c_str(), O_TRUNC | O_WRONLY | O_CREAT, 0644);
+    }
     if (fd < 0) {
       *result = nullptr;
       return PosixError(filename, errno);
