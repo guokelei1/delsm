@@ -1257,14 +1257,17 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* updates) {
     // into mem_.
     {
       mutex_.Unlock();
-      status = log_->AddRecord(WriteBatchInternal::Contents(write_batch));
       bool sync_error = false;
+      if(delsm::MOD > 100){
+      status = log_->AddRecord(WriteBatchInternal::Contents(write_batch));
       if (status.ok() && options.sync) {
         status = logfile_->Sync();
         if (!status.ok()) {
           sync_error = true;
         }
       }
+      }
+
       if (status.ok()) {
         status = WriteBatchInternal::InsertInto(write_batch, mem_);
       }
