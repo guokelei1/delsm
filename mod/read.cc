@@ -24,7 +24,8 @@ using namespace delsm;
 
 int value_size = 1;
 
-static const std::string kStaticString(1, 'a');
+static const std::string kStaticString(4096, 'a');
+static const std::string kStaticString2(1024, 'b');
 // 创建一个静态的4096长度的字符串
 
 string generate_value(uint64_t value) {
@@ -53,9 +54,14 @@ int main() {
 
   double start_time = delsm::env->NowMicros();
 
-  for (int i = 0; i < 102400; i++) {
+  for (int i = 0; i < 10240; i++) {
     string key = to_string(i);
     status = db->Put(write_options, key, kStaticString);
+    assert(status.ok() && "Put Error");
+  }
+    for (int i = 10240; i < 20240; i++) {
+    string key = to_string(i);
+    status = db->Put(write_options, key, kStaticString2);
     assert(status.ok() && "Put Error");
   }
   if (delsm::MOD > 0) {

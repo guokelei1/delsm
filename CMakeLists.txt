@@ -194,6 +194,8 @@ target_sources(leveldb
     "mod/util.cc"
     "mod/vlog.h"
     "mod/vlog.cc"
+    "mod/index.h"
+    "mod/index.cc"
 
 
   # Only CMake 3.3+ supports PUBLIC sources in targets exported by "install".
@@ -240,6 +242,7 @@ target_include_directories(leveldb
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    ${GLIB_INCLUDE_DIRS}
 )
 
 set_target_properties(leveldb
@@ -286,14 +289,20 @@ if(HAVE_TCMALLOC)
   target_link_libraries(leveldb tcmalloc)
 endif(HAVE_TCMALLOC)
 
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLIB REQUIRED glib-2.0)
+
 # Needed by port_stdcxx.h
 find_package(Threads REQUIRED)
-target_link_libraries(leveldb Threads::Threads)
+target_link_libraries(leveldb Threads::Threads ${GLIB_LIBRARIES} isal_crypto)
 
 add_executable(leveldbutil
   "db/leveldbutil.cc"
 )
 target_link_libraries(leveldbutil leveldb)
+
+
 
 if(LEVELDB_BUILD_TESTS)
   enable_testing()

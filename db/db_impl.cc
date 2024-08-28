@@ -36,6 +36,7 @@
 #include "util/logging.h"
 #include "util/mutexlock.h"
 
+#include "mod/index.h"
 #include "mod/util.h"
 #include "mod/vlog.h"
 
@@ -153,7 +154,7 @@ DBImpl::DBImpl(const Options& raw_options, const std::string& dbname)
       versions_(new VersionSet(dbname_, &options_, table_cache_,
                                &internal_comparator_)) {
   delsm::db = this;
-  //printf("DBImpl::DBImpl\n");
+  // printf("DBImpl::DBImpl\n");
   vlog = new delsm::VLog(dbname_ + "/vlog.txt");
 }
 
@@ -1211,9 +1212,19 @@ void DBImpl::ReleaseSnapshot(const Snapshot* snapshot) {
 
 // Convenience methods
 Status DBImpl::Put(const WriteOptions& o, const Slice& key, const Slice& val) {
-  //printf("Put\n");
+  // printf("Put\n");
+  // dev1:: 在put的时增加处理，进行去重操作
+  uint64_t value_address;
+  bool is_dedup = false;
   if (delsm::MOD > 0) {
-    uint64_t value_address = delsm::db->vlog->AddRecord(key, val);
+    // 对于mod1 且大小等于1024的才进行去重操作，其他就用正常的就可以
+    if (delsm::MOD > 1) {
+      //if (val.size() == delsm::index_chunk_size) {
+        value_address = delsm::dedup(key, val);
+        is_dedup = true;
+      //}
+    }
+    if (!is_dedup) value_address = delsm::db->vlog->AddRecord(key, val);
     char buffer[sizeof(uint64_t) + sizeof(uint32_t)];
     EncodeFixed64(buffer, value_address);
     EncodeFixed32(buffer + sizeof(uint64_t), val.size());
@@ -1258,14 +1269,14 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* updates) {
     {
       mutex_.Unlock();
       bool sync_error = false;
-      if(delsm::MOD > 100){
-      status = log_->AddRecord(WriteBatchInternal::Contents(write_batch));
-      if (status.ok() && options.sync) {
-        status = logfile_->Sync();
-        if (!status.ok()) {
-          sync_error = true;
+      if (delsm::MOD > 100) {
+        status = log_->AddRecord(WriteBatchInternal::Contents(write_batch));
+        if (status.ok() && options.sync) {
+          status = logfile_->Sync();
+          if (!status.ok()) {
+            sync_error = true;
+          }
         }
-      }
       }
 
       if (status.ok()) {
@@ -1530,8 +1541,11 @@ DB::~DB() = default;
 Status DB::Open(const Options& options, const std::string& dbname, DB** dbptr) {
   *dbptr = nullptr;
 
-  //初始化util相关参数
-  delsm::env= options.env;
+  // 初始化util相关参数
+  delsm::env = options.env;
+  if (delsm::MOD > 1) {
+    delsm::init_index();
+  }
 
   DBImpl* impl = new DBImpl(options, dbname);
   impl->mutex_.Lock();

@@ -32,6 +32,7 @@ uint64_t VLog::AddRecord(const Slice& key, const Slice& value) {
   PutVarint32(&buffer, value.size());
   uint64_t result = vlog_size + buffer.size();
   buffer.append(value.data(), value.size());
+  if (buffer.size() >= buffer_size_max) Flush();
   //printf("AddRecord:%ld\n", result);
   return result;
 }
@@ -39,7 +40,7 @@ uint64_t VLog::AddRecord(const Slice& key, const Slice& value) {
 string VLog::ReadRecord(uint64_t address, uint32_t size) {
   if (address >= vlog_size)
   {
-   printf("Read from buffer,address:%ld\n", address);
+   //printf("Read from buffer,address:%ld\n", address);
     return string(buffer.c_str() + address - vlog_size, size);
   }
  // printf("Read from disk,address:%ld\n", address);

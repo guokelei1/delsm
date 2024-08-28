@@ -11,9 +11,10 @@ using std::to_string;
 
 namespace delsm{
 
-// 0 represents the initial leveldb, and 1 represents the leveldb of kv
-// separation.
-int MOD = 1;
+// 0 represents the initial leveldb,
+//1 represents the leveldb of kv separation.
+// 2 represents simple_index
+int MOD = 2;
 
 leveldb::DBImpl* db;
 leveldb::Env* env;
