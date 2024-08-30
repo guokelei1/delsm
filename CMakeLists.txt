@@ -107,6 +107,7 @@ configure_file(
 include_directories(
   "${PROJECT_BINARY_DIR}/include"
   "."
+  "/usr/include/glib-2.0"
 )
 
 if(BUILD_SHARED_LIBS)
@@ -196,6 +197,11 @@ target_sources(leveldb
     "mod/vlog.cc"
     "mod/index.h"
     "mod/index.cc"
+    "mod/sds.cc"
+    "mod/sds.h"
+    "mod/read_file.cc"
+    "mod/chunking.h"
+    "mod/chunking.cc"
 
 
   # Only CMake 3.3+ supports PUBLIC sources in targets exported by "install".

@@ -34,15 +34,23 @@ string generate_value(uint64_t value) {
       string(value_size - value_string.length(), '2') + value_string;
   return std::move(result);
 }
+void test_file_open() {
+  const sds dir_name = "/home/gkl/testdata/linux-5.0.1";
+  delsm::read_file(dir_name);
+  delsm::print_total_size();
+
+}
 
 int main() {
+  test_file_open();
+  return 0;
   Options options;
   options.create_if_missing = true;
   DB* db;
   leveldb::ReadOptions read_options;
   leveldb::WriteOptions write_options;
   write_options.sync = false;
-  string db_location = "/mnt/d/testdb";
+  string db_location = "/home/gkl/testdb";
 
   string command = "rm -rf " + db_location;
   int rc;

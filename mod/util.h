@@ -13,6 +13,13 @@
 #include "leveldb/slice.h"
 #include "leveldb/env.h"
 #include <x86intrin.h>
+#include "mod/sds.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include "mod/read_file.h"
+#include "mod/chunking.h"
+
 
 
 
@@ -23,6 +30,9 @@ extern int MOD;
 
 extern leveldb::DBImpl* db;
 extern leveldb::Env* env;
+
+
+
 }
 
 
