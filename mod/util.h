@@ -5,35 +5,39 @@
 #ifndef LEVELDB_UTIL_H
 #define LEVELDB_UTIL_H
 
+#include "db/db_impl.h"
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
-#include <vector>
-#include "db/db_impl.h"
-#include "leveldb/slice.h"
-#include "leveldb/env.h"
-#include <x86intrin.h>
-#include "mod/sds.h"
+#include <dirent.h>
+#include <sstream>
+#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <dirent.h>
-#include "mod/read_file.h"
+#include <vector>
+#include <x86intrin.h>
+
+#include "leveldb/env.h"
+#include "leveldb/slice.h"
+
 #include "mod/chunking.h"
+#include "mod/read_file.h"
+#include "mod/sds.h"
+#include "mod/timer.h"
 
-
-
+using std::string;
 
 namespace delsm {
 
-// 0 represents the initial leveldb, and 1 represents the leveldb of kv separation.
+// 0 represents the initial leveldb, and 1 represents the leveldb of kv
+// separation.
 extern int MOD;
 
 extern leveldb::DBImpl* db;
 extern leveldb::Env* env;
+extern leveldb::WriteOptions write_options;
+extern leveldb::ReadOptions read_options;
 
+}  // namespace delsm
 
-
-}
-
-
-#endif //LEVELDB_UTIL_H
+#endif  // LEVELDB_UTIL_H

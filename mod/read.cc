@@ -35,15 +35,14 @@ string generate_value(uint64_t value) {
   return std::move(result);
 }
 void test_file_open() {
-  const sds dir_name = "/home/gkl/testdata/linux-5.0.1";
+   //const sds dir_name = "/home/gkl/testdata";
+  const sds dir_name = "/home/gkl/testaa";
+
   delsm::read_file(dir_name);
   delsm::print_total_size();
-
 }
 
 int main() {
-  test_file_open();
-  return 0;
   Options options;
   options.create_if_missing = true;
   DB* db;
@@ -58,27 +57,27 @@ int main() {
 
   Status status = DB::Open(options, db_location, &db);
   assert(status.ok() && "Open Error");
+
+  delsm::read_options = read_options;
+  delsm::write_options = write_options;
+
+  delsm::Stats* stats = delsm::Stats::GetInstance();
+  stats->StartTimer(0);
+  stats->PauseTimer(0);
   printf("begin\n");
-
+  stats->StartTimer(2);
+  stats->StartTimer(3);
   double start_time = delsm::env->NowMicros();
-
-  for (int i = 0; i < 10240; i++) {
-    string key = to_string(i);
-    status = db->Put(write_options, key, kStaticString);
-    assert(status.ok() && "Put Error");
-  }
-    for (int i = 10240; i < 20240; i++) {
-    string key = to_string(i);
-    status = db->Put(write_options, key, kStaticString2);
-    assert(status.ok() && "Put Error");
-  }
+  stats->PauseTimer(2);
+  test_file_open();
   if (delsm::MOD > 0) {
     delsm::db->vlog->Sync();
   }
-
+  stats->PauseTimer(3);
   double end_time = delsm::env->NowMicros();
-
   printf("end\n");
   double time_spent = (double)(end_time - start_time) / 1000000;
   printf("Execution time: %.2f seconds\n", time_spent);
+  stats->ReportTime();
+  return 0;
 }

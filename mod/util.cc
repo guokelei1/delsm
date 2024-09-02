@@ -14,9 +14,11 @@ namespace delsm{
 // 0 represents the initial leveldb,
 //1 represents the leveldb of kv separation.
 // 2 represents simple_index
-int MOD = 2;
+int MOD = 1;
 
 leveldb::DBImpl* db;
 leveldb::Env* env;
+leveldb::WriteOptions write_options;
+leveldb::ReadOptions read_options;
 
 }  // namespace adgMod

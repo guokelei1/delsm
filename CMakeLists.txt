@@ -108,6 +108,7 @@ include_directories(
   "${PROJECT_BINARY_DIR}/include"
   "."
   "/usr/include/glib-2.0"
+  "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
 )
 
 if(BUILD_SHARED_LIBS)
@@ -202,6 +203,8 @@ target_sources(leveldb
     "mod/read_file.cc"
     "mod/chunking.h"
     "mod/chunking.cc"
+    "mod/timer.h"
+    "mod/timer.cc"
 
 
   # Only CMake 3.3+ supports PUBLIC sources in targets exported by "install".
