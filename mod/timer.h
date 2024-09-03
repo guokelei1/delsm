@@ -16,7 +16,6 @@ using std::string;
 
 namespace delsm {
 
-    const float reference_frequency = 2.2;
 
     class Timer {
         uint64_t time_started;

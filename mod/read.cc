@@ -76,7 +76,7 @@ int main() {
   stats->PauseTimer(3);
   double end_time = delsm::env->NowMicros();
   printf("end\n");
-  double time_spent = (double)(end_time - start_time) / 1000000;
+  double time_spent = (double)(end_time - start_time) ;
   printf("Execution time: %.2f seconds\n", time_spent);
   stats->ReportTime();
   return 0;

@@ -5,7 +5,6 @@
 #include "timer.h"
 
 #include <cassert>
-#include <x86intrin.h>
 
 
 namespace delsm {
@@ -14,16 +13,13 @@ Timer::Timer(const std::string& name):time_accumulated(0), started(false),name(n
 
 void Timer::Start() {
   assert(!started);
-  unsigned int dummy = 0;
-  time_started = __rdtscp(&dummy);
+  time_started =delsm::env->NowMicros();
   started = true;
 }
 
 void Timer::Pause() {
   assert(started);
-  unsigned int dummy = 0;
-  uint64_t time_elapse = __rdtscp(&dummy) - time_started;
-  time_accumulated += time_elapse / reference_frequency;
+  time_accumulated += (delsm::env->NowMicros() - time_started);
     return ;
 }
 
